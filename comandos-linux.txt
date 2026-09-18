@@ -1,0 +1,50 @@
+$ whoami     # ¿quién soy aquí? → ec2-user
+
+$ hostname   # ¿cómo se llama este servidor?
+
+$ pwd       # ¿en qué carpeta estoy?
+
+$ uname -a   # ¿qué sistema es? (Linux 👀)
+
+$ uptime    # ¿hace cuánto está encendido?
+
+$ df -h     # ¿cuánto disco tengo?
+
+$ free -h   # ¿cuánta memoria RAM?
+
+$ nproc     # ¿cuántos procesadores?
+
+pwd --nos muestra la ruta completa de donde estamos en el momento
+
+ls -la --muestra todos los archivos que estan escondidos
+
+cd -- nos ayuda a volver al principio "Casa"
+
+cd / -- nos ayuda a movernos a la raiz del sistema
+
+cd / + nombre de carpeta -- nos ayuda a movernos entre las carpetas creadas 
+
+ls -- nos da la lista de todas las carpetas del sistema o el mapa de linux
+
+whoami -- me ayuda a identificar con que usuario estoy logeado
+
+uname -a -- nos muestra la informacion del sistema
+
+mkdir -- nos ayuda a crear directorios nuevos
+
+echo -- nos ayuda a crear archivos
+
+cat -- nos muestra que hay dentro de nuestros archivos 
+
+cp -- nos ayuda a copiar archivos entre carpetas 
+
+mv -- nos ayuda a renombrar archivos 
+
+rm -- es el comando que usamos cuando queremos eliminar algo siempre debemos tener en cuenta donde estamos ya que no tenemos papelera de reciclaje se recomienda usar pwd para saber donde estamos
+
+history -- muestra el historial de los comandos que hemos usado anteriormente 
+
+grep -- muestra las palabras que hay dentro de un archivo estructura: "grep "nota" nota.txt"
+
+--help y man -- nos muestra que hace cada comando y cuales son sus variables de uso
+
