@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="InsightWorks provides data analysis consulting to help businesses make smarter, data-driven decisions." />
+  <title>InsightWorks | Data Analysis Consulting</title>
+  <style>
+    :root {
+      --navy: #102a43;
+      --blue: #2563eb;
+      --light-blue: #eff6ff;
+      --text: #334e68;
+      --muted: #627d98;
+      --white: #ffffff;
+      --border: #d9e2ec;
+      --background: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      color: var(--text);
+      background: var(--background);
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      width: min(1120px, 92%);
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      align-items: center;
+      display: flex;
+      justify-content: space-between;
+      min-height: 72px;
+    }
+
+    .logo {
+      color: var(--navy);
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    .logo span {
+      color: var(--blue);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a:hover {
+      color: var(--blue);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--light-blue), var(--white));
+      padding: 6rem 0;
+    }
+
+    .hero-content {
+      max-width: 720px;
+    }
+
+    .eyebrow {
+      color: var(--blue);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      color: var(--navy);
+      font-size: clamp(2.4rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      margin: 1rem 0 1.5rem;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.15rem;
+      max-width: 620px;
+    }
+
+    .button {
+      background: var(--blue);
+      border-radius: 6px;
+      color: var(--white);
+      display: inline-block;
+      font-weight: 700;
+      margin-top: 2rem;
+      padding: 0.85rem 1.25rem;
+    }
+
+    .button:hover {
+      background: #1d4ed8;
+    }
+
+    section {
+      padding: 5rem 0;
+    }
+
+    .section-heading {
+      margin-bottom: 2.5rem;
+      max-width: 650px;
+    }
+
+    h2 {
+      color: var(--navy);
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+    }
+
+    .cards {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.75rem;
+    }
+
+    .card-icon {
+      color: var(--blue);
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+
+    .card h3 {
+      color: var(--navy);
+      margin-bottom: 0.6rem;
+    }
+
+    .card p {
+      color: var(--muted);
+    }
+
+    .about {
+      background: var(--navy);
+      color: var(--white);
+    }
+
+    .about h2 {
+      color: var(--white);
+    }
+
+    .about p {
+      color: #d9e2ec;
+      max-width: 720px;
+    }
+
+    .contact {
+      text-align: center;
+    }
+
+    .contact p {
+      color: var(--muted);
+      margin: 0 auto;
+      max-width: 600px;
+    }
+
+    footer {
+      background: #0b1f33;
+      color: #bcccdc;
+      padding: 1.5rem 0;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .nav-links {
+        display: none;
+      }
+
+      .hero {
+        padding: 4rem 0;
+      }
+
+      section {
+        padding: 3.5rem 0;
+      }
+
+      .cards {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <nav aria-label="Main navigation">
+        <a class="logo" href="#">Insight<span>Works</span></a>
+        <ul class="nav-links">
+          <li><a href="#services">Services</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <div class="eyebrow">Data analysis consulting</div>
+        <h1>Turn complex data into confident decisions.</h1>
+        <p>
+          We help organizations uncover meaningful insights, improve performance,
+          and build practical data strategies that create measurable impact.
+        </p>
+        <a class="button" href="#contact">Start a conversation</a>
+      </div>
+    </section>
+
+    <section id="services">
+      <div class="container">
+        <div class="section-heading">
+          <h2>How we help</h2>
+          <p>Clear analysis, actionable recommendations, and scalable solutions tailored to your goals.</p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">▦</div>
+            <h3>Business Intelligence</h3>
+            <p>Transform raw data into dashboards and reports that make performance easy to understand.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">⌁</div>
+            <h3>Advanced Analytics</h3>
+            <p>Use statistical analysis and forecasting to identify trends, risks, and new opportunities.</p>
+          </article>
+
+          <article class="card">
+            <div class="card-icon" aria-hidden="true">✓</div>
+            <h3>Data Strategy</h3>
+            <p>Build reliable processes, define useful metrics, and establish a foundation for growth.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="about" id="about">
+      <div class="container">
+        <h2>Insight that moves your business forward.</h2>
+        <p>
+          Our consultants combine technical expertise with business understanding
+          to deliver analysis that is practical, understandable, and aligned with
+          your most important decisions.
+        </p>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="container">
+        <div class="section-heading" style="margin: 0 auto;">
+          <h2>Ready to find your next insight?</h2>
+          <p>Tell us about your challenge and discover how better data can support your next decision.</p>
+          <a class="button" href="mailto:hello@insightworks.example">hello@insightworks.example</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <small>&copy; 2025 InsightWorks. All rights reserved.</small>
+    </div>
+  </footer>
+</body>
+</html>
