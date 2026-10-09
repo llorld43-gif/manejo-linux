@@ -1,300 +1,683 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="InsightWorks provides data analysis consulting to help businesses make smarter, data-driven decisions." />
-  <title>InsightWorks | Data Analysis Consulting</title>
+  <meta name="description" content="Explora la Biblia, juega, reflexiona y crece en tu relación con Jesús. Un espacio para jóvenes basado en la sana doctrina cristiana." />
+  <meta name="theme-color" content="#f7f6f1" />
+  <title>Raíces — Fe que crece</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
     :root {
-      --navy: #102a43;
-      --blue: #2563eb;
-      --light-blue: #eff6ff;
-      --text: #334e68;
-      --muted: #627d98;
-      --white: #ffffff;
-      --border: #d9e2ec;
-      --background: #f8fafc;
+      color-scheme: light;
+      --ink: #193d35;
+      --ink-soft: #46645a;
+      --muted: #77877e;
+      --paper: #f7f6f1;
+      --white: #fffefa;
+      --line: #e7e8df;
+      --green: #255f4c;
+      --green-dark: #194b3b;
+      --lime: #d5e6a9;
+      --orange: #e99262;
+      --peach: #fbede2;
+      --lavender: #eceafa;
+      --shadow: 0 18px 55px rgba(35, 64, 51, 0.08);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      color: var(--text);
-      background: var(--background);
-      font-family: Arial, sans-serif;
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "DM Sans", Arial, sans-serif;
       line-height: 1.6;
     }
-
-    a {
-      color: inherit;
-      text-decoration: none;
+    button, input, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    button { color: inherit; }
+    a { color: inherit; text-decoration: none; }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+      outline: 3px solid #dfa16f;
+      outline-offset: 3px;
     }
+    .container { width: min(1160px, calc(100% - 48px)); margin: 0 auto; }
 
-    .container {
-      width: min(1120px, 92%);
-      margin: 0 auto;
+    .site-header {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      background: rgba(247, 246, 241, .91);
+      border-bottom: 1px solid rgba(231, 232, 223, .8);
+      backdrop-filter: blur(16px);
     }
-
-    header {
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-    }
-
-    nav {
+    .nav {
+      min-height: 76px;
+      display: flex;
       align-items: center;
-      display: flex;
       justify-content: space-between;
-      min-height: 72px;
+      gap: 24px;
     }
-
-    .logo {
-      color: var(--navy);
-      font-size: 1.35rem;
-      font-weight: 700;
-    }
-
-    .logo span {
-      color: var(--blue);
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 1.5rem;
-      list-style: none;
-    }
-
-    .nav-links a:hover {
-      color: var(--blue);
-    }
-
-    .hero {
-      background: linear-gradient(135deg, var(--light-blue), var(--white));
-      padding: 6rem 0;
-    }
-
-    .hero-content {
-      max-width: 720px;
-    }
-
-    .eyebrow {
-      color: var(--blue);
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      color: var(--navy);
-      font-size: clamp(2.4rem, 6vw, 4.5rem);
-      line-height: 1.1;
-      margin: 1rem 0 1.5rem;
-    }
-
-    .hero p {
-      color: var(--muted);
-      font-size: 1.15rem;
-      max-width: 620px;
-    }
-
-    .button {
-      background: var(--blue);
-      border-radius: 6px;
-      color: var(--white);
-      display: inline-block;
-      font-weight: 700;
-      margin-top: 2rem;
-      padding: 0.85rem 1.25rem;
-    }
-
-    .button:hover {
-      background: #1d4ed8;
-    }
-
-    section {
-      padding: 5rem 0;
-    }
-
-    .section-heading {
-      margin-bottom: 2.5rem;
-      max-width: 650px;
-    }
-
-    h2 {
-      color: var(--navy);
-      font-size: 2rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .section-heading p {
-      color: var(--muted);
-    }
-
-    .cards {
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-family: Manrope, sans-serif; font-weight: 800; letter-spacing: -.05em; font-size: 1.4rem; }
+    .brand-mark {
       display: grid;
-      gap: 1.5rem;
-      grid-template-columns: repeat(3, 1fr);
-    }
-
-    .card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.75rem;
-    }
-
-    .card-icon {
-      color: var(--blue);
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    .card h3 {
-      color: var(--navy);
-      margin-bottom: 0.6rem;
-    }
-
-    .card p {
-      color: var(--muted);
-    }
-
-    .about {
-      background: var(--navy);
+      width: 34px;
+      height: 34px;
+      place-items: center;
       color: var(--white);
+      background: var(--green);
+      border-radius: 12px 12px 12px 4px;
+      font-size: 1.1rem;
     }
-
-    .about h2 {
-      color: var(--white);
+    .brand small { display: block; color: var(--muted); font: 500 .62rem "DM Sans", sans-serif; letter-spacing: .09em; text-transform: uppercase; margin-top: -3px; }
+    .nav-links { display: flex; align-items: center; gap: clamp(18px, 3vw, 38px); list-style: none; padding: 0; margin: 0; color: var(--ink-soft); font-size: .91rem; font-weight: 600; }
+    .nav-links a:hover { color: var(--green); }
+    .nav-cta, .button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 19px;
+      background: var(--green);
+      color: white;
+      font-weight: 700;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: transform .2s, background .2s;
     }
+    .nav-cta:hover, .button:hover { background: var(--green-dark); transform: translateY(-2px); }
+    .menu-toggle { display: none; border: 1px solid var(--line); background: var(--white); border-radius: 50%; width: 42px; height: 42px; cursor: pointer; }
 
-    .about p {
-      color: #d9e2ec;
-      max-width: 720px;
+    .hero { padding: 70px 0 76px; overflow: hidden; }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 52px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; color: var(--green); font-size: .77rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    .eyebrow:before { content: ""; width: 22px; height: 1px; background: currentColor; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { font-family: Manrope, "DM Sans", sans-serif; }
+    h1 { max-width: 650px; margin: 18px 0 19px; font-size: clamp(3.1rem, 6.3vw, 5.4rem); line-height: 1.03; letter-spacing: -.075em; font-weight: 700; }
+    h1 em { color: var(--green); font-style: normal; }
+    .hero-copy { max-width: 510px; color: var(--ink-soft); font-size: 1.08rem; line-height: 1.8; }
+    .hero-actions { display: flex; gap: 13px; align-items: center; flex-wrap: wrap; margin-top: 29px; }
+    .button-light { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 11px 17px; font-weight: 700; font-size: .9rem; background: rgba(255,254,250,.75); }
+    .button-light:hover { border-color: #a6b8a8; background: var(--white); }
+    .hero-note { margin-top: 27px; color: var(--muted); font-size: .82rem; }
+    .hero-note strong { color: var(--ink-soft); }
+
+    .hero-art { position: relative; min-height: 430px; display: grid; place-items: center; }
+    .art-halo { position: absolute; width: 370px; height: 370px; border-radius: 50%; background: #e6edda; }
+    .art-halo:before, .art-halo:after { content: ""; position: absolute; border: 1px solid #cbd7bf; border-radius: 50%; inset: -22px; }
+    .art-halo:after { inset: -43px; opacity: .55; }
+    .open-bible { position: relative; width: min(370px, 82%); min-height: 264px; padding: 39px 36px 32px; background: var(--white); border-radius: 16px 30px 22px 17px; box-shadow: var(--shadow); transform: rotate(-3deg); }
+    .open-bible:before { content: ""; position: absolute; top: 16px; bottom: 18px; left: 50%; border-left: 1px solid #e5e4da; }
+    .book-label { color: #8e9b88; font-size: .65rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .book-verse { margin: 24px 0 18px; font: 600 1.36rem/1.5 Manrope, sans-serif; letter-spacing: -.035em; }
+    .book-reference { color: var(--green); font-size: .82rem; font-weight: 700; }
+    .floating-tag { position: absolute; display: flex; gap: 9px; align-items: center; padding: 12px 16px; background: var(--white); border: 1px solid rgba(231,232,223,.9); border-radius: 15px; box-shadow: 0 12px 36px rgba(35,64,51,.1); font-size: .82rem; font-weight: 700; }
+    .tag-top { top: 45px; right: -4px; transform: rotate(4deg); }
+    .tag-bottom { bottom: 37px; left: 0; transform: rotate(-4deg); }
+    .tag-icon { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 10px; background: var(--peach); }
+
+    .daily-bar { background: var(--green); color: white; padding: 18px 0; }
+    .daily-content { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+    .daily-label { display: inline-flex; align-items: center; gap: 9px; color: #d5e6a9; font-size: .76rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .daily-verse { margin: 2px 0 0; font-family: Manrope, sans-serif; font-size: 1.02rem; font-weight: 600; }
+    .daily-ref { flex: 0 0 auto; color: #d5e6a9; font-size: .85rem; font-weight: 700; }
+
+    section { scroll-margin-top: 90px; }
+    .section { padding: 91px 0; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 35px; }
+    .section-heading h2 { margin: 11px 0 9px; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.13; letter-spacing: -.06em; }
+    .section-heading p { max-width: 470px; margin: 0; color: var(--muted); }
+    .section-kicker { color: var(--green); font-size: .76rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .topic-tools { display: flex; align-items: center; gap: 8px; margin: 0 0 22px; flex-wrap: wrap; }
+    .filter-button { border: 1px solid var(--line); border-radius: 999px; background: transparent; padding: 8px 15px; color: var(--ink-soft); font-size: .83rem; font-weight: 700; cursor: pointer; }
+    .filter-button:hover, .filter-button.active { border-color: var(--green); color: white; background: var(--green); }
+    .topics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .topic-card { display: flex; flex-direction: column; min-height: 260px; padding: 22px; border: 1px solid var(--line); border-radius: 19px; background: var(--white); transition: transform .2s, box-shadow .2s, border-color .2s; }
+    .topic-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); border-color: #c9d8c6; }
+    .topic-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .topic-icon { display: grid; width: 47px; height: 47px; place-items: center; border-radius: 15px; font-size: 1.4rem; }
+    .topic-time { color: var(--muted); font-size: .73rem; font-weight: 600; }
+    .topic-card h3 { margin: 0 0 8px; font-size: 1.12rem; letter-spacing: -.035em; }
+    .topic-card p { color: var(--muted); font-size: .87rem; line-height: 1.55; margin-bottom: 20px; }
+    .topic-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 12px; border-top: 1px solid #f0f0e9; }
+    .topic-reference { color: var(--green); font-size: .77rem; font-weight: 700; }
+    .topic-open { border: 0; background: transparent; color: var(--green); font-size: 1.2rem; cursor: pointer; width: 34px; height: 34px; border-radius: 50%; }
+    .topic-open:hover { background: #edf2e8; }
+    .topic-detail { display: none; margin-top: 22px; padding: 29px; border-radius: 20px; border: 1px solid #dfe6d8; background: #edf2e8; }
+    .topic-detail.open { display: grid; grid-template-columns: 1fr auto; gap: 22px; align-items: center; animation: rise .25s ease-out; }
+    .topic-detail h3 { font-size: 1.5rem; margin: 0 0 9px; }
+    .topic-detail p { margin: 0; max-width: 750px; color: var(--ink-soft); }
+    .topic-detail .button { white-space: nowrap; }
+
+    .practice { background: #eeeee5; }
+    .practice-grid { display: grid; grid-template-columns: 1fr .9fr; gap: 22px; align-items: stretch; }
+    .quiz-card, .reflection-card { padding: clamp(26px, 4vw, 43px); border-radius: 22px; }
+    .quiz-card { position: relative; overflow: hidden; color: white; background: var(--green); }
+    .quiz-card:after { content: "?"; position: absolute; top: -50px; right: 9px; color: rgba(255,255,255,.07); font: 800 18rem/1 Manrope, sans-serif; pointer-events: none; }
+    .quiz-card > * { position: relative; z-index: 1; }
+    .quiz-card .section-kicker { color: var(--lime); }
+    .quiz-card h2 { max-width: 490px; margin: 11px 0 8px; color: white; font-size: clamp(1.8rem, 3vw, 2.45rem); letter-spacing: -.055em; line-height: 1.16; }
+    .quiz-intro { color: #d3dfd3; margin-bottom: 27px; font-size: .93rem; }
+    .quiz-meta { display: flex; gap: 17px; align-items: center; color: #d3dfd3; font-size: .78rem; margin-bottom: 17px; }
+    .quiz-meta strong { color: white; }
+    .quiz-question { margin: 0 0 16px; font-size: 1.15rem; font-weight: 700; }
+    .quiz-options { display: grid; gap: 9px; }
+    .quiz-option { display: flex; align-items: center; gap: 11px; width: 100%; padding: 12px 14px; text-align: left; border: 1px solid rgba(255,255,255,.24); border-radius: 12px; background: rgba(255,255,255,.07); color: white; cursor: pointer; transition: .2s; }
+    .quiz-option:hover:not(:disabled) { border-color: var(--lime); background: rgba(255,255,255,.15); }
+    .quiz-option:disabled { cursor: default; }
+    .quiz-option.correct { background: #d9ebbc; border-color: #d9ebbc; color: #193d35; }
+    .quiz-option.incorrect { background: #f4d3c3; border-color: #f4d3c3; color: #513126; }
+    .option-letter { display: grid; flex: 0 0 26px; height: 26px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.13); font-size: .73rem; font-weight: 700; }
+    .quiz-feedback { min-height: 25px; margin: 13px 0 0; color: var(--lime); font-size: .86rem; font-weight: 600; }
+    .quiz-next { display: none; margin-top: 5px; color: var(--green-dark); background: var(--lime); }
+    .quiz-next.visible { display: inline-flex; }
+
+    .reflection-card { background: var(--white); border: 1px solid var(--line); }
+    .reflection-card h2 { margin: 11px 0 8px; font-size: clamp(1.8rem, 3vw, 2.4rem); letter-spacing: -.055em; line-height: 1.16; }
+    .reflection-card > p { color: var(--muted); font-size: .91rem; }
+    .prompt-box { margin: 22px 0 17px; padding: 15px 17px; background: var(--lavender); border-radius: 13px; color: #514e70; font-size: .9rem; font-weight: 600; }
+    .reflection-card label { display: block; margin-bottom: 7px; color: var(--ink-soft); font-size: .8rem; font-weight: 700; }
+    textarea { display: block; width: 100%; min-height: 115px; resize: vertical; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; color: var(--ink); font-size: .9rem; }
+    textarea::placeholder { color: #a1aaa2; }
+    .reflection-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+    .reflection-actions .button { padding: 10px 16px; }
+    .save-status { min-height: 20px; color: var(--green); font-size: .78rem; font-weight: 600; }
+    .saved-reflections { margin-top: 22px; display: grid; gap: 9px; }
+    .saved-entry { padding: 12px 14px; border-left: 3px solid #cbd8ae; border-radius: 0 10px 10px 0; background: #f6f7f1; color: var(--ink-soft); font-size: .82rem; overflow-wrap: anywhere; }
+    .saved-entry time { display: block; margin-bottom: 4px; color: var(--muted); font-size: .7rem; }
+
+    .journey { padding: 0 0 92px; }
+    .journey-card { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 30px; padding: 32px 40px; border: 1px solid var(--line); border-radius: 20px; background: var(--white); }
+    .journey-title { display: flex; align-items: center; gap: 17px; }
+    .journey-icon { display: grid; flex: 0 0 52px; height: 52px; place-items: center; border-radius: 17px; background: var(--peach); font-size: 1.35rem; }
+    .journey-title h2 { margin: 0 0 3px; font-size: 1.22rem; letter-spacing: -.04em; }
+    .journey-title p { margin: 0; color: var(--muted); font-size: .84rem; }
+    .progress-wrap { width: min(290px, 28vw); }
+    .progress-copy { display: flex; justify-content: space-between; color: var(--ink-soft); font-size: .77rem; font-weight: 700; margin-bottom: 8px; }
+    .progress-track { height: 9px; overflow: hidden; border-radius: 999px; background: #edf0e7; }
+    .progress-fill { width: 0%; height: 100%; border-radius: inherit; background: #8aa96e; transition: width .4s ease; }
+    .doctrine { padding: 74px 0; color: white; background: #214a3d; }
+    .doctrine-inner { display: grid; grid-template-columns: .78fr 1.22fr; gap: 60px; align-items: center; }
+    .doctrine h2 { margin: 11px 0 12px; color: white; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -.06em; line-height: 1.12; }
+    .doctrine .section-kicker { color: var(--lime); }
+    .doctrine-copy { color: #d5e1d7; max-width: 400px; font-size: .93rem; }
+    .belief-list { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .belief { padding: 19px; border: 1px solid rgba(255,255,255,.15); border-radius: 15px; background: rgba(255,255,255,.055); }
+    .belief strong { display: block; color: white; margin-bottom: 6px; font-size: .92rem; }
+    .belief span { display: block; color: #cfdbd0; font-size: .8rem; line-height: 1.55; }
+
+    footer { padding: 26px 0; background: #17392f; color: #d1ddd2; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .footer-inner p { margin: 0; font-size: .79rem; }
+    .footer-note { color: #a9bcae; }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 900px) {
+      .hero-grid { gap: 18px; }
+      .hero-art { min-height: 370px; }
+      .art-halo { width: 300px; height: 300px; }
+      .topics-grid { grid-template-columns: repeat(2, 1fr); }
+      .doctrine-inner { gap: 32px; }
     }
-
-    .contact {
-      text-align: center;
+    @media (max-width: 680px) {
+      .container { width: min(100% - 34px, 540px); }
+      .nav { min-height: 66px; }
+      .nav-cta { display: none; }
+      .menu-toggle { display: block; }
+      .nav-links { display: none; position: absolute; top: 65px; left: 0; right: 0; padding: 18px 24px 22px; border-bottom: 1px solid var(--line); background: var(--paper); flex-direction: column; align-items: stretch; gap: 0; }
+      .nav-links.open { display: flex; }
+      .nav-links a { display: block; padding: 11px 4px; }
+      .hero { padding: 53px 0 49px; }
+      .hero-grid { grid-template-columns: 1fr; gap: 9px; }
+      h1 { font-size: clamp(3rem, 14vw, 4.3rem); }
+      .hero-copy { font-size: 1rem; }
+      .hero-art { min-height: 335px; }
+      .art-halo { width: 268px; height: 268px; }
+      .open-bible { min-height: 230px; padding: 30px 27px; }
+      .book-verse { font-size: 1.18rem; margin: 19px 0 14px; }
+      .tag-top { right: -2px; top: 27px; }
+      .tag-bottom { left: -1px; bottom: 20px; }
+      .daily-content { align-items: flex-start; flex-direction: column; gap: 7px; }
+      .daily-verse { font-size: .93rem; }
+      .section { padding: 65px 0; }
+      .section-heading { display: block; margin-bottom: 25px; }
+      .section-heading p { margin-top: 10px; }
+      .topics-grid { gap: 11px; }
+      .topic-card { min-height: 255px; padding: 17px; }
+      .topic-card h3 { font-size: 1rem; }
+      .topic-card p { font-size: .81rem; }
+      .topic-detail.open { grid-template-columns: 1fr; }
+      .topic-detail .button { justify-self: start; }
+      .practice-grid { grid-template-columns: 1fr; }
+      .quiz-card, .reflection-card { padding: 25px; }
+      .journey { padding-bottom: 65px; }
+      .journey-card { grid-template-columns: 1fr; padding: 24px; gap: 20px; }
+      .progress-wrap { width: 100%; }
+      .doctrine { padding: 62px 0; }
+      .doctrine-inner { grid-template-columns: 1fr; gap: 24px; }
+      .belief-list { gap: 10px; }
+      .belief { padding: 15px; }
+      .footer-inner { align-items: flex-start; flex-direction: column; gap: 6px; }
     }
-
-    .contact p {
-      color: var(--muted);
-      margin: 0 auto;
-      max-width: 600px;
+    @media (max-width: 390px) {
+      .topics-grid { grid-template-columns: 1fr; }
+      .topic-card { min-height: 220px; }
+      .belief-list { grid-template-columns: 1fr; }
+      .hero-actions { align-items: stretch; flex-direction: column; }
+      .hero-actions > * { width: 100%; }
     }
-
-    footer {
-      background: #0b1f33;
-      color: #bcccdc;
-      padding: 1.5rem 0;
-      text-align: center;
-    }
-
-    @media (max-width: 760px) {
-      .nav-links {
-        display: none;
-      }
-
-      .hero {
-        padding: 4rem 0;
-      }
-
-      section {
-        padding: 3.5rem 0;
-      }
-
-      .cards {
-        grid-template-columns: 1fr;
-      }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
-  <header>
+  <header class="site-header">
     <div class="container">
-      <nav aria-label="Main navigation">
-        <a class="logo" href="#">Insight<span>Works</span></a>
+      <nav class="nav" aria-label="Navegación principal">
+        <a class="brand" href="#inicio" aria-label="Raíces, inicio">
+          <span class="brand-mark" aria-hidden="true">✳</span>
+          <span>raÍces<small>fe que crece</small></span>
+        </a>
+        <button class="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>
         <ul class="nav-links">
-          <li><a href="#services">Services</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="#temas">Explorar temas</a></li>
+          <li><a href="#juego">Jugar y aprender</a></li>
+          <li><a href="#reflexion">Reflexionar</a></li>
         </ul>
+        <a class="nav-cta" href="#temas">Empezar a crecer <span aria-hidden="true">↗</span></a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section class="hero">
-      <div class="container hero-content">
-        <div class="eyebrow">Data analysis consulting</div>
-        <h1>Turn complex data into confident decisions.</h1>
-        <p>
-          We help organizations uncover meaningful insights, improve performance,
-          and build practical data strategies that create measurable impact.
-        </p>
-        <a class="button" href="#contact">Start a conversation</a>
+    <section class="hero" id="inicio">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Un espacio para crecer</span>
+          <h1>Una fe con <em>raíces.</em><br />Una vida con propósito.</h1>
+          <p class="hero-copy">Descubre lo que enseña la Biblia, haz preguntas sin miedo y encuentra formas reales de caminar con Jesús cada día.</p>
+          <div class="hero-actions">
+            <a class="button" href="#temas">Explorar temas <span aria-hidden="true">→</span></a>
+            <a class="button-light" href="#juego"><span aria-hidden="true">✦</span> Probar el quiz</a>
+          </div>
+          <p class="hero-note"><strong>Sin presión. Sin respuestas fáciles.</strong> Solo Biblia, conversación y crecimiento.</p>
+        </div>
+        <div class="hero-art" aria-label="Biblia abierta con una reflexión del día">
+          <div class="art-halo" aria-hidden="true"></div>
+          <div class="open-bible">
+            <div class="book-label">Un recordatorio para hoy</div>
+            <p class="book-verse">El amor de Dios no depende de que tengas todo resuelto.</p>
+            <span class="book-reference">Romanos 8:38–39</span>
+          </div>
+          <div class="floating-tag tag-top"><span class="tag-icon" aria-hidden="true">🌱</span> Crece a tu ritmo</div>
+          <div class="floating-tag tag-bottom"><span class="tag-icon" aria-hidden="true">💬</span> Pregunta. Aprende. Vive.</div>
+        </div>
       </div>
     </section>
 
-    <section id="services">
+    <aside class="daily-bar" aria-label="Versículo para reflexionar">
+      <div class="container daily-content">
+        <div>
+          <span class="daily-label"><span aria-hidden="true">✺</span> Para llevar contigo</span>
+          <p class="daily-verse">“Confía en el Señor con todo tu corazón.”</p>
+        </div>
+        <span class="daily-ref">Proverbios 3:5</span>
+      </div>
+    </aside>
+
+    <section class="section" id="temas">
       <div class="container">
         <div class="section-heading">
-          <h2>How we help</h2>
-          <p>Clear analysis, actionable recommendations, and scalable solutions tailored to your goals.</p>
+          <div>
+            <span class="section-kicker">Tu camino empieza aquí</span>
+            <h2>¿Qué te gustaría<br />explorar hoy?</h2>
+          </div>
+          <p>Temas importantes para la vida real, explicados desde la Biblia. Elige uno para descubrir su idea central y pasajes para seguir leyendo.</p>
         </div>
+        <div class="topic-tools" role="group" aria-label="Filtrar temas bíblicos">
+          <button class="filter-button active" type="button" data-filter="Todos" aria-pressed="true">Todos</button>
+          <button class="filter-button" type="button" data-filter="Fe" aria-pressed="false">Fe</button>
+          <button class="filter-button" type="button" data-filter="Vida" aria-pressed="false">Vida diaria</button>
+          <button class="filter-button" type="button" data-filter="Biblia" aria-pressed="false">Biblia</button>
+        </div>
+        <div class="topics-grid" id="topics-grid"></div>
+        <div class="topic-detail" id="topic-detail" aria-live="polite"></div>
+      </div>
+    </section>
 
-        <div class="cards">
-          <article class="card">
-            <div class="card-icon" aria-hidden="true">▦</div>
-            <h3>Business Intelligence</h3>
-            <p>Transform raw data into dashboards and reports that make performance easy to understand.</p>
-          </article>
+    <section class="section practice" id="juego">
+      <div class="container practice-grid">
+        <article class="quiz-card">
+          <span class="section-kicker">Aprende jugando</span>
+          <h2>¿Cuánto sabes de la Biblia?</h2>
+          <p class="quiz-intro">Una pregunta a la vez. Lee, piensa y descubre por qué.</p>
+          <div class="quiz-meta"><span>Pregunta <strong id="quiz-count">1 de 5</strong></span><span>✦ <strong id="quiz-score">0 puntos</strong></span></div>
+          <p class="quiz-question" id="quiz-question"></p>
+          <div class="quiz-options" id="quiz-options" role="group" aria-label="Opciones de respuesta"></div>
+          <p class="quiz-feedback" id="quiz-feedback" aria-live="polite"></p>
+          <button class="button quiz-next" id="quiz-next" type="button">Siguiente pregunta <span aria-hidden="true">→</span></button>
+        </article>
 
-          <article class="card">
-            <div class="card-icon" aria-hidden="true">⌁</div>
-            <h3>Advanced Analytics</h3>
-            <p>Use statistical analysis and forecasting to identify trends, risks, and new opportunities.</p>
-          </article>
+        <article class="reflection-card" id="reflexion">
+          <span class="section-kicker">Haz una pausa</span>
+          <h2>La fe también<br />se vive por dentro.</h2>
+          <p>No necesitas tener palabras perfectas. Escribe lo que estás pensando; este espacio es solo tuyo en este dispositivo.</p>
+          <div class="prompt-box" id="reflection-prompt">¿Qué te gustaría confiarle a Dios hoy?</div>
+          <label for="reflection-input">Mi reflexión de hoy</label>
+          <textarea id="reflection-input" placeholder="Puedes empezar con: Hoy me siento..."></textarea>
+          <div class="reflection-actions">
+            <span class="save-status" id="save-status" aria-live="polite"></span>
+            <button class="button" id="save-reflection" type="button">Guardar reflexión <span aria-hidden="true">↗</span></button>
+          </div>
+          <div class="saved-reflections" id="saved-reflections" aria-live="polite"></div>
+        </article>
+      </div>
+    </section>
 
-          <article class="card">
-            <div class="card-icon" aria-hidden="true">✓</div>
-            <h3>Data Strategy</h3>
-            <p>Build reliable processes, define useful metrics, and establish a foundation for growth.</p>
-          </article>
+    <section class="journey" aria-label="Tu progreso">
+      <div class="container">
+        <div class="journey-card">
+          <div class="journey-title">
+            <span class="journey-icon" aria-hidden="true">🪴</span>
+            <div>
+              <h2>Cada paso cuenta.</h2>
+              <p>Tu progreso se queda guardado en este dispositivo.</p>
+            </div>
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-copy"><span>Temas explorados</span><span id="progress-label">0 de 6</span></div>
+            <div class="progress-track" role="progressbar" aria-label="Temas bíblicos explorados" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="about" id="about">
-      <div class="container">
-        <h2>Insight that moves your business forward.</h2>
-        <p>
-          Our consultants combine technical expertise with business understanding
-          to deliver analysis that is practical, understandable, and aligned with
-          your most important decisions.
-        </p>
-      </div>
-    </section>
-
-    <section class="contact" id="contact">
-      <div class="container">
-        <div class="section-heading" style="margin: 0 auto;">
-          <h2>Ready to find your next insight?</h2>
-          <p>Tell us about your challenge and discover how better data can support your next decision.</p>
-          <a class="button" href="mailto:hello@insightworks.example">hello@insightworks.example</a>
+    <section class="doctrine" aria-labelledby="doctrine-heading">
+      <div class="container doctrine-inner">
+        <div>
+          <span class="section-kicker">Nuestra brújula</span>
+          <h2 id="doctrine-heading">Fe con fundamento.<br />Gracia en el camino.</h2>
+          <p class="doctrine-copy">Queremos aprender con humildad, mirando a Jesús y leyendo cada pasaje en su contexto. La fe no es fingir que tienes todas las respuestas: es seguir buscando a Dios.</p>
+        </div>
+        <div class="belief-list">
+          <div class="belief"><strong>La Biblia nos guía</strong><span>Leemos las Escrituras con atención, en su contexto y como fundamento de nuestra fe.</span></div>
+          <div class="belief"><strong>Jesús es el centro</strong><span>Creemos en un solo Dios: Padre, Hijo y Espíritu Santo. Jesús, el Hijo, murió y resucitó.</span></div>
+          <div class="belief"><strong>Salvos por gracia</strong><span>La salvación es regalo de Dios, recibido por la fe; no algo que ganamos por méritos.</span></div>
+          <div class="belief"><strong>Crecer en comunidad</strong><span>La fe se fortalece con oración, amor al prójimo y una comunidad cristiana sana.</span></div>
         </div>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="container">
-      <small>&copy; 2025 InsightWorks. All rights reserved.</small>
+    <div class="container footer-inner">
+      <p><strong>raÍces</strong> · Un espacio para aprender y crecer.</p>
+      <p class="footer-note">La reflexión personal se guarda solo en tu navegador.</p>
     </div>
   </footer>
+
+  <script>
+    const topics = [
+      {
+        id: "gracia", title: "La gracia de Dios", category: "Fe", icon: "🤍", color: "#f8e9e3",
+        summary: "Un amor que no tienes que ganarte. ¿Qué significa recibir la gracia?",
+        reference: "Efesios 2:8–10", time: "5 min",
+        detail: "La Biblia enseña que somos salvados por gracia mediante la fe: es un regalo de Dios, no un premio por portarnos bien. Las buenas obras no compran el amor de Dios; son una respuesta agradecida a lo que Él ya hizo. Lee Efesios 2:8–10 y fíjate en cómo la gracia y una vida con propósito van juntas."
+      },
+      {
+        id: "identidad", title: "¿Quién soy en Dios?", category: "Fe", icon: "🪞", color: "#eceafa",
+        summary: "Tu valor no depende de likes, notas ni de encajar con todos.",
+        reference: "Salmo 139:1–18", time: "6 min",
+        detail: "La Biblia presenta a cada persona como creada y conocida por Dios. Para quienes confían en Cristo, su identidad más profunda está en pertenecerle, no en la aprobación de otras personas. Lee Salmo 139:1–18 y Efesios 1:3–8; recuerda que tu valor no se mide por tu rendimiento."
+      },
+      {
+        id: "oracion", title: "Hablar con Dios", category: "Vida", icon: "🙏", color: "#e6efdd",
+        summary: "La oración no es un discurso perfecto: es acercarte con sinceridad.",
+        reference: "Mateo 6:5–13", time: "4 min",
+        detail: "Jesús enseñó a orar con sinceridad, sin usar palabras para impresionar. En el Padre Nuestro hay alabanza, confianza, petición de lo necesario, perdón y guía. Puedes hablar con Dios con tus propias palabras y también guardar silencio. Lee Mateo 6:5–13."
+      },
+      {
+        id: "perdon", title: "Perdón y nuevos comienzos", category: "Vida", icon: "🌿", color: "#f5edcf",
+        summary: "El perdón de Dios transforma cómo recibimos y ofrecemos perdón.",
+        reference: "Lucas 15:11–24", time: "7 min",
+        detail: "En la parábola del hijo que regresa, Jesús muestra la compasión del padre ante quien vuelve a casa. El perdón no niega el daño ni obliga a permanecer en una situación peligrosa; abre camino a la verdad, el arrepentimiento y la restauración. Lee Lucas 15:11–24 y Colosenses 3:12–13."
+      },
+      {
+        id: "biblia", title: "Leer la Biblia con sentido", category: "Biblia", icon: "📖", color: "#e5eef1",
+        summary: "Unos pasos sencillos para entender un pasaje en su contexto.",
+        reference: "2 Timoteo 3:14–17", time: "5 min",
+        detail: "Empieza por observar: ¿quién habla?, ¿a quién?, ¿qué ocurre antes y después? Luego pregunta qué enseña el pasaje sobre Dios y cómo se relaciona con el mensaje completo de la Biblia. No todo texto es una promesa directa para nosotros: el contexto importa. Lee 2 Timoteo 3:14–17."
+      },
+      {
+        id: "proposito", title: "Fe en la vida diaria", category: "Vida", icon: "☀️", color: "#fbede2",
+        summary: "Amar a Dios y al prójimo se nota en decisiones cotidianas.",
+        reference: "Miqueas 6:8", time: "5 min",
+        detail: "La fe no se queda en palabras: Jesús nos llama a amar a Dios y al prójimo. Practicar justicia, misericordia y humildad empieza en decisiones concretas: cómo tratamos a otros, qué hacemos ante una injusticia y cuándo pedimos ayuda. Lee Miqueas 6:8 y Mateo 22:37–40."
+      }
+    ];
+
+    const questions = [
+      { question: "Según Efesios 2:8–9, ¿cómo recibimos la salvación?", options: ["Por gracia, mediante la fe", "Solo por hacer buenas obras", "Por ser perfectos"], answer: 0, explanation: "La salvación es un regalo de Dios recibido por la fe, no algo que podamos presumir o ganar." },
+      { question: "¿Qué enseñó Jesús sobre la oración en Mateo 6?", options: ["Que usemos palabras difíciles", "Que oremos con sinceridad, no para impresionar", "Que solo oremos en público"], answer: 1, explanation: "Jesús invitó a hablar con Dios con sinceridad y confianza, no para recibir la aprobación de otros." },
+      { question: "¿Qué hizo el padre cuando el hijo regresó en Lucas 15?", options: ["Lo recibió con compasión", "Le pidió que pagara una multa primero", "No quiso volver a verlo"], answer: 0, explanation: "En la parábola, el padre corre a recibir a su hijo y celebra su regreso." },
+      { question: "¿Qué nos ayuda a entender un pasaje bíblico?", options: ["Leerlo sin mirar nada más", "Preguntar por su contexto y a quién se dirige", "Elegir la interpretación más popular"], answer: 1, explanation: "Observar el contexto —quién habla, a quién y qué ocurre alrededor— ayuda a interpretarlo con cuidado." },
+      { question: "Según Mateo 22:37–40, ¿qué resume Jesús como los dos grandes mandamientos?", options: ["Amar a Dios y al prójimo", "Tener siempre la razón", "Evitar hablar con quienes son distintos"], answer: 0, explanation: "Jesús resume la ley en amar a Dios y amar al prójimo; el amor se muestra en acciones." }
+    ];
+
+    const reflectionPrompts = [
+      "¿Qué te gustaría confiarle a Dios hoy?",
+      "¿Qué cualidad de Jesús te gustaría reflejar esta semana?",
+      "¿Hay alguien a quien podrías mostrarle un poco más de gracia?",
+      "¿Qué pregunta te gustaría llevar a tu lectura de la Biblia?",
+      "¿Por qué cosa pequeña puedes dar gracias hoy?",
+      "¿Qué paso de amor al prójimo podrías dar esta semana?"
+    ];
+    const storageKeys = { progress: "raices-progress-v1", reflections: "raices-reflections-v1" };
+    const storedProgress = loadStored(storageKeys.progress, []);
+    let explored = Array.isArray(storedProgress) ? storedProgress.filter(id => topics.some(topic => topic.id === id)) : [];
+    const storedReflections = loadStored(storageKeys.reflections, []);
+    let savedReflections = Array.isArray(storedReflections)
+      ? storedReflections.filter(entry => entry && typeof entry.text === "string" && typeof entry.date === "string")
+      : [];
+    let score = 0;
+    let questionIndex = 0;
+    let answered = false;
+    let currentFilter = "Todos";
+
+    function loadStored(key, fallback) {
+      try {
+        const value = localStorage.getItem(key);
+        return value === null ? fallback : JSON.parse(value);
+      } catch (error) {
+        console.error("No se pudieron leer los datos guardados.", error);
+        return fallback;
+      }
+    }
+
+    function saveStored(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+      } catch (error) {
+        console.error("No se pudieron guardar los datos.", error);
+        return false;
+      }
+    }
+
+    function renderTopics() {
+      const grid = document.getElementById("topics-grid");
+      const visibleTopics = topics.filter(topic => currentFilter === "Todos" || topic.category === currentFilter);
+      grid.innerHTML = visibleTopics.map(topic => `
+        <article class="topic-card">
+          <div class="topic-top">
+            <span class="topic-icon" style="background:${topic.color}" aria-hidden="true">${topic.icon}</span>
+            <span class="topic-time">${topic.time} de lectura</span>
+          </div>
+          <h3>${topic.title}</h3>
+          <p>${topic.summary}</p>
+          <div class="topic-footer">
+            <span class="topic-reference">${topic.reference}</span>
+            <button class="topic-open" type="button" data-topic="${topic.id}" aria-label="Explorar ${topic.title}">↗</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function showTopic(topicId) {
+      const topic = topics.find(item => item.id === topicId);
+      if (!topic) return;
+      const detail = document.getElementById("topic-detail");
+      detail.innerHTML = `<div><span class="section-kicker">${topic.reference} · ${topic.time}</span><h3>${topic.title}</h3><p>${topic.detail}</p></div><a class="button" href="#juego">Poner a prueba lo aprendido <span aria-hidden="true">→</span></a>`;
+      detail.classList.add("open");
+      if (!explored.includes(topic.id)) {
+        explored = [...explored, topic.id];
+        if (!saveStored(storageKeys.progress, explored)) {
+          document.getElementById("save-status").textContent = "No se pudo guardar el progreso en este navegador.";
+        }
+        updateProgress();
+      }
+    }
+
+    function updateProgress() {
+      const count = Math.min(explored.length, topics.length);
+      document.getElementById("progress-label").textContent = `${count} de ${topics.length}`;
+      document.getElementById("progress-fill").style.width = `${count / topics.length * 100}%`;
+      document.querySelector('[role="progressbar"]').setAttribute("aria-valuenow", String(count));
+      document.getElementById("quiz-score").textContent = `${score} ${score === 1 ? "punto" : "puntos"}`;
+    }
+
+    function renderQuestion() {
+      const question = questions[questionIndex];
+      answered = false;
+      document.getElementById("quiz-count").textContent = `${questionIndex + 1} de ${questions.length}`;
+      document.getElementById("quiz-question").textContent = question.question;
+      document.getElementById("quiz-feedback").textContent = "";
+      document.getElementById("quiz-next").classList.remove("visible");
+      document.getElementById("quiz-options").innerHTML = question.options.map((option, index) => `
+        <button class="quiz-option" type="button" data-answer="${index}">
+          <span class="option-letter">${String.fromCharCode(65 + index)}</span><span>${option}</span>
+        </button>
+      `).join("");
+    }
+
+    function selectAnswer(selectedIndex, button) {
+      if (answered) return;
+      answered = true;
+      const question = questions[questionIndex];
+      const buttons = [...document.querySelectorAll(".quiz-option")];
+      buttons.forEach((option, index) => {
+        option.disabled = true;
+        if (index === question.answer) option.classList.add("correct");
+        else if (index === selectedIndex) option.classList.add("incorrect");
+      });
+      const correct = selectedIndex === question.answer;
+      if (correct) {
+        score += 1;
+        updateProgress();
+      }
+      document.getElementById("quiz-feedback").textContent = `${correct ? "¡Así es!" : "Buen intento."} ${question.explanation}`;
+      const nextButton = document.getElementById("quiz-next");
+      nextButton.textContent = questionIndex === questions.length - 1 ? "Ver resultado ↻" : "Siguiente pregunta →";
+      nextButton.classList.add("visible");
+    }
+
+    function renderReflections() {
+      const container = document.getElementById("saved-reflections");
+      container.innerHTML = savedReflections.slice(0, 3).map(entry => {
+        const article = document.createElement("article");
+        article.className = "saved-entry";
+        const time = document.createElement("time");
+        time.dateTime = entry.date;
+        time.textContent = new Date(entry.date).toLocaleDateString("es", { day: "numeric", month: "long" });
+        const text = document.createElement("span");
+        text.textContent = entry.text;
+        article.append(time, text);
+        return article.outerHTML;
+      }).join("");
+    }
+
+    document.querySelector(".topic-tools").addEventListener("click", event => {
+      const button = event.target.closest("[data-filter]");
+      if (!button) return;
+      currentFilter = button.dataset.filter;
+      document.querySelectorAll(".filter-button").forEach(filter => {
+        const active = filter === button;
+        filter.classList.toggle("active", active);
+        filter.setAttribute("aria-pressed", String(active));
+      });
+      renderTopics();
+    });
+
+    document.getElementById("topics-grid").addEventListener("click", event => {
+      const button = event.target.closest("[data-topic]");
+      if (button) showTopic(button.dataset.topic);
+    });
+
+    document.getElementById("quiz-options").addEventListener("click", event => {
+      const button = event.target.closest("[data-answer]");
+      if (button) selectAnswer(Number(button.dataset.answer), button);
+    });
+
+    document.getElementById("quiz-next").addEventListener("click", () => {
+      if (questionIndex === questions.length - 1) {
+        questionIndex = 0;
+        score = 0;
+        updateProgress();
+      } else {
+        questionIndex += 1;
+      }
+      renderQuestion();
+    });
+
+    document.getElementById("save-reflection").addEventListener("click", () => {
+      const input = document.getElementById("reflection-input");
+      const status = document.getElementById("save-status");
+      const text = input.value.trim();
+      if (!text) {
+        status.textContent = "Escribe una idea antes de guardar.";
+        input.focus();
+        return;
+      }
+      savedReflections = [{ text, date: new Date().toISOString() }, ...savedReflections].slice(0, 20);
+      if (saveStored(storageKeys.reflections, savedReflections)) {
+        input.value = "";
+        status.textContent = "Tu reflexión quedó guardada en este dispositivo.";
+        renderReflections();
+      } else {
+        status.textContent = "No se pudo guardar. Revisa el almacenamiento del navegador e inténtalo de nuevo.";
+      }
+    });
+
+    const reflectionIndex = Math.floor(Date.now() / 86400000) % reflectionPrompts.length;
+    document.getElementById("reflection-prompt").textContent = reflectionPrompts[reflectionIndex];
+
+    const menuToggle = document.querySelector(".menu-toggle");
+    menuToggle.addEventListener("click", () => {
+      const links = document.querySelector(".nav-links");
+      const open = links.classList.toggle("open");
+      menuToggle.setAttribute("aria-expanded", String(open));
+      menuToggle.setAttribute("aria-label", open ? "Cerrar menú" : "Abrir menú");
+      menuToggle.textContent = open ? "×" : "☰";
+    });
+    document.querySelectorAll(".nav-links a").forEach(link => link.addEventListener("click", () => {
+      document.querySelector(".nav-links").classList.remove("open");
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Abrir menú");
+      menuToggle.textContent = "☰";
+    }));
+
+    renderTopics();
+    renderQuestion();
+    renderReflections();
+    updateProgress();
+  </script>
 </body>
 </html>
