@@ -95,7 +95,7 @@ resource "aws_lambda_function" "back" {
   role             = aws_iam_role.lambda.arn
   runtime          = "python3.12"
   handler          = "app.handler" # archivo app.py → función handler
-  memory_size      = 128
+  memory_size      = 256
   timeout          = 10
   filename         = data.archive_file.espera.output_path
   source_code_hash = data.archive_file.espera.output_base64sha256
