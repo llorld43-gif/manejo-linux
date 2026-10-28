@@ -146,6 +146,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Subir el front a S3
+        working-directory: "tienda-laura-cicd"
         run: aws s3 sync front "s3://${{ needs.infra.outputs.bucket }}" --delete --exclude config.js
 
   finalizar:
