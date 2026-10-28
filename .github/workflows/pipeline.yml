@@ -112,6 +112,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Subir el back a Lambda
+        working-directory: "tienda-laura-cicd"
         run: |
           aws lambda update-function-code --function-name "${{ needs.infra.outputs.funcion }}" --zip-file fileb://back.zip --query LastModified --output text
           aws lambda wait function-updated --function-name "${{ needs.infra.outputs.funcion }}"
