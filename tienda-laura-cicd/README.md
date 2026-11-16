@@ -1,343 +1,240 @@
-# La tienda de Laura con CI/CD (GitHub Actions + Terraform en el pipeline)
+# La tienda de Laura con CI/CD · parte 3: los ojos (CloudWatch + X-Ray)
 
-Laboratorio de las clases 13 y 14 · Esumer · Cloud Computing, Redes y Ciberseguridad.
+Laboratorio de la clase 17 · Esumer · Cloud Computing, Redes y Ciberseguridad.
 
-La misma tienda serverless de la clase pasada, pero ahora **nadie la sube a mano, ni siquiera con Terraform**.
-Va en dos partes: **primero toda la infraestructura, después la aplicación**.
+Es **la misma tienda y el mismo repositorio** de las clases 14 y 15: el pipeline ya la publica sola.
+Hoy no se crea nada a mano. Le agregamos **ojos** y llegan **por pull request**, como cualquier cambio:
 
-| | Parte 1 · clase 14 · **la infraestructura** | Parte 2 · clase 15 · **la aplicación** |
-|---|---|---|
-| El pipeline | **1 · infra**: `terraform apply` en cada push a main y `terraform plan` en cada pull request | **1 · infra** → **2 · back** y **2 · front** (probar → empaquetar → publicar) → **3 · finalizar** |
-| Qué haces | bootstrap, primer push, el estado en S3, un cambio por pull request y el candado | activas la app, cambias el título, rompes un precio y proteges main |
-| Al terminar | **NO destruyas nada**: la infraestructura sigue para la parte 2 | destruyes todo, en orden |
-
-- El **estado** de Terraform vive en un bucket S3 **con versiones y candado**, no en ningún PC.
-- GitHub entra a tu AWS **sin llaves**, con un pase temporal (OIDC) y dos roles: uno que solo mira (plan) y otro que aplica (apply).
-- Lo único que corres a mano es el **bootstrap**, una sola vez: crea el bucket del estado y los roles.
-  Es el huevo y la gallina: el pipeline guarda su estado en ese bucket, así que el bucket tiene que existir antes.
+| | Parte 1 · clase 14 | Parte 2 · clase 15 | **Parte 3 · clase 17 (hoy)** |
+|---|---|---|---|
+| Qué se publica solo | la infraestructura | + la aplicación (back y front) | **+ los ojos**: logs en JSON, métricas, **trazas**, alarmas y tablero |
+| Las pruebas | — | las del back (precios, tallas) | **+ en vivo**: el pipeline espera la traza de un pedido, y la página corre **4 pruebas de observabilidad** |
 
 ```
 tienda-laura-cicd/
-├── front/                 ← FRONT: S3 + CloudFront (lo sube el pipeline · parte 2)
-│   ├── index.html
-│   ├── estilos.css
-│   └── app.js
-├── back/                  ← BACK: la Lambda (lo empaqueta y lo sube el pipeline · parte 2)
-│   ├── app.py                 valida, pone el precio y guarda
-│   └── test_app.py            las pruebas que corre el pipeline
-├── bootstrap/             ← PASO 2: lo ÚNICO a mano (una vez, desde tu PC)
-│   ├── main.tf                bucket del estado + proveedor OIDC + roles plan y apply
-│   ├── pipeline-1-infra.yml.tpl   plantilla del pipeline de la parte 1
-│   └── pipeline-2-app.yml.tpl     plantilla del pipeline de la parte 2
-├── terraform/             ← la infraestructura: la aplica el PIPELINE, no tú
-│   ├── main.tf                backend "s3" + toda la infraestructura (la Lambda nace con un código de espera)
-│   └── backend.hcl            ← lo escribe bootstrap (el nombre de TU bucket del estado)
-├── .github/workflows/
-│   └── pipeline.yml           ← lo escribe bootstrap: el de la PARTE 1 (solo infra)
-├── parte2/
-│   └── pipeline.yml           ← lo escribe bootstrap: el de la PARTE 2 (infra + app), guardado para la clase 15
-├── .gitignore                 lo que nunca se sube a GitHub
-├── .gitattributes             finales de línea iguales en Windows y en GitHub
-└── politica-iam-cicd.json
+├── back/
+│   ├── app.py              ← CAMBIA: log en JSON + métricas EMF + tramos de X-Ray + GET /?observar=
+│   ├── test_app.py         ← CAMBIA: 7 pruebas nuevas (el log, las métricas, la falla, la lentitud, la cascada…)
+│   └── requirements.txt    ← NUEVO: el SDK de X-Ray (el pipeline lo empaqueta junto a app.py)
+├── front/                  ← CAMBIA: la sección 🔭 Pruebas de observabilidad
+├── terraform/
+│   ├── main.tf             ← CAMBIA una cosa: la Lambda deja trazas (tracing_config)
+│   └── observabilidad.tf   ← NUEVO: SNS (correo) + 2 alarmas + 3 consultas guardadas + el tablero
+└── bootstrap/
+    ├── main.tf             ← CAMBIA: el rol del pipeline puede manejar CloudWatch y SNS
+    └── pipeline.yml.tpl    ← CAMBIA: el pipeline completo, con la prueba de la traza
 ```
 
-# PARTE 1 · Clase 14: la infraestructura se publica sola
+## Las tres patas de la observabilidad, en esta tienda
 
-## Lo que necesitas
+| | Responde | Dónde se ve |
+|---|---|---|
+| **Logs** | ¿qué pasó? (cada pedido, cada rechazo, cada error) | CloudWatch Logs y **Logs Insights** |
+| **Métricas** | ¿cuánto? (pedidos, ventas, errores, cuánto tardan: p50 y p90) | el **tablero** y las **alarmas** |
+| **Trazas** | ¿**dónde**? (el recorrido de UN pedido, tramo por tramo) | **X-Ray** y la sección 🔭 de la página |
 
-- Una cuenta de GitHub (gratis): https://github.com/signup
-- Git instalado. En la terminal de VS Code: `git --version`. Si dice que no se reconoce,
-  instala Git para Windows (https://git-scm.com/download/win) y **cierra y vuelve a abrir VS Code**.
-- Terraform **1.10 o más nuevo**: `terraform version` (el candado del estado en S3 llegó en la 1.10).
-- Tu usuario `terraform-lab` de AWS, el de las clases pasadas.
+Cada pedido deja su traza con estos tramos: `pedido` → `validar` → `DynamoDB · PutItem` → `cobrar`.
+`cobrar` es una pasarela de pagos de mentiras con dos clientes especiales para practicar:
+**`lento`** (tarda 3 segundos) y **`caos`** (se cae y la Lambda falla de verdad).
 
-## PASO 0 · Permisos de terraform-lab (una sola vez)
+# PARTE 3 · Clase 17: la tienda con ojos
 
-IAM → Usuarios → `terraform-lab` → Agregar permisos:
+## PASO 12 · Trae lo nuevo
 
-1. Adjuntar políticas directamente (si no las tienes de las clases pasadas): `AmazonS3FullAccess`, `AWSLambda_FullAccess`,
-   `AmazonAPIGatewayAdministrator`, `AmazonDynamoDBFullAccess` y `CloudFrontFullAccess`
-   (las necesitas al final, para destruir desde tu PC).
-2. Crear política insertada → pestaña **JSON** → pega `politica-iam-cicd.json` → nombre `solo-roles-y-github`.
+> ¿Tu proyecto ya tiene tus propias rutas, nombres o el lab en una subcarpeta? No copies la carpeta entera:
+> sigue **`CAMBIOS-PARTE3.md`**: qué carpetas reemplazar, qué archivos del bootstrap cambian y qué no tocar. Después sigue aquí, desde el punto 2.
 
-## PASO 1 · Crea tu repositorio en GitHub
+1. Baja el zip de hoy (`tienda-laura-cicd-parte3.zip`), ábrelo y entra a su carpeta `tienda-laura-cicd`.
+   Selecciona todo (**Ctrl + A**) y **cópialo encima de tu carpeta del lab** (la de las clases 14 y 15, la que tiene `bootstrap/terraform.tfstate`):
+   Windows pregunta → **Reemplazar los archivos en el destino**.
+   (Si en el PASO 8 cambiaste el título, se vuelve a poner el original: no pasa nada.)
+2. En la terminal de VS Code, en la carpeta principal, trae lo último y abre una **rama**:
 
-GitHub → **New repository** → nombre `tienda-laura` → **Private** → **no** marques "Add a README" → **Create repository**.
+```powershell
+git checkout main
+git pull
+git checkout -b los-ojos
+```
 
-Copia tu `usuario/tienda-laura` de la URL, **exacto** (con las mismas mayúsculas).
+## PASO 13 · Más permisos para el pipeline (bootstrap, desde tu PC)
 
-## PASO 2 · El bootstrap (lo único a mano)
-
-En la terminal de VS Code, **dentro de la carpeta `bootstrap`**:
+El rol `tienda-cicd-apply` solo sabe manejar la tienda. Para crear alarmas, el tablero y el correo necesita más permisos,
+y **el pipeline no puede dárselos a sí mismo**: se los da una persona, desde su PC, con el bootstrap.
 
 ```powershell
 cd bootstrap
-terraform init
-terraform apply
-```
-
-Te pregunta `var.repo_github`: escribe tu `usuario/tienda-laura` y Enter. Luego **yes**.
-Tarda menos de 1 minuto: **13 recursos** (12 si tu cuenta ya tenía el proveedor de GitHub).
-
-Al terminar aparecieron tres archivos con TUS datos:
-
-- `terraform/backend.hcl` → el nombre de tu bucket del estado (`tienda-estado-<tu número de cuenta>`).
-- `.github/workflows/pipeline.yml` → el pipeline de **hoy**: solo la infraestructura.
-- `parte2/pipeline.yml` → el pipeline **completo**, guardado para la clase 15.
-
-Fíjate: **la infraestructura todavía no existe**. Esa la va a crear el pipeline.
-
-> **¿Usas un repositorio que ya tienes?** (el lab queda en una subcarpeta, no en la raíz)
-> GitHub solo corre los pipelines de `.github/workflows/` en la **raíz** del repositorio.
-> Dile a bootstrap dónde está el lab. Desde la carpeta del lab (la que tiene `bootstrap`, `terraform`, `front`…):
->
-> ```powershell
-> $c = git rev-parse --show-prefix
-> cd bootstrap
-> terraform init
-> terraform apply -var="repo_github=TU-USUARIO/TU-REPO" -var="carpeta=$c"
-> ```
->
-> `git rev-parse --show-prefix` da la ruta del lab dentro de tu repo (con espacios y todo).
-> Así el `pipeline.yml` queda en la **raíz** de tu repo, corre dentro de tu carpeta y solo se dispara cuando cambia algo del lab.
-> En el PASO 3 **no** hagas `git init` ni `git remote add`: tu repo ya existe. Desde la carpeta del lab:
->
-> ```powershell
-> git add . ":/.github"
-> git commit -m "lab tienda de Laura con pipeline"
-> git push
-> ```
->
-> (`":/.github"` agrega la carpeta `.github` de la raíz del repo.)
-
-## PASO 3 · El primer push: el pipeline crea la infraestructura
-
-Vuelve a la carpeta principal y sube todo a GitHub (cambia `TU-USUARIO`):
-
-```powershell
-cd ..
-git config --global user.name "Tu Nombre"
-git config --global user.email "tu-correo@ejemplo.com"
-git init
-git add .
-git commit -m "primera version de la tienda"
-git branch -M main
-git remote add origin https://github.com/TU-USUARIO/tienda-laura.git
-git push -u origin main
-```
-
-La primera vez se abre el navegador para que entres a GitHub. En tu repositorio, pestaña **Actions**:
-
-**1 · Infra (terraform apply)** ✅ → `terraform init` (estado en S3) y `terraform apply`: **13 recursos**, ≈ 4 min por CloudFront.
-
-Abre la ejecución: abajo, en el **resumen**, sale **"Infraestructura lista: https://…cloudfront.net"**. Ábrela:
-dice **"🧱 La infraestructura ya está lista"**. La tabla, la Lambda, el API, el bucket y CloudFront existen, y nadie corrió `terraform apply` en su PC.
-La tienda de verdad (el back y el front) llega en la parte 2.
-
-## PASO 4 · El estado por dentro
-
-Consola de AWS → **S3** → `tienda-estado-<tu número de cuenta>` → `tienda/` → `terraform.tfstate`:
-
-- Pestaña **Versiones** (activa "Mostrar versiones"): hay **una versión por cada apply** del pipeline.
-  Si un estado se daña, se recupera la versión anterior.
-- Descárgalo y ábrelo en VS Code: es un JSON con **todo** lo que Terraform creó (por eso es privado y cifrado).
-
-Ahora mira el mismo estado **desde tu PC**:
-
-```powershell
-cd terraform
-terraform init -backend-config="backend.hcl"
-terraform state list
-terraform plan
+terraform apply     # tu usuario/tienda-laura, igual que en la clase 14 · yes
 cd ..
 ```
 
-`state list` muestra 15 líneas: los **13 recursos** que creó el pipeline y 2 `data.` (cosas que Terraform solo lee). `plan` dice **No changes**: tu PC y el pipeline ven **el mismo estado**.
+> Si el lab está en una subcarpeta de otro repo, igual que en la clase 14:
+> `$c = git rev-parse --show-prefix` y `terraform apply -var="repo_github=TU-USUARIO/TU-REPO" -var="carpeta=$c"` (desde la carpeta del lab, antes del `cd bootstrap`).
 
-## PASO 5 · Un cambio de infraestructura por pull request
+Mira el plan antes del **yes**: cambia **la política del rol `tienda-cicd-apply`** y se reescribe **`.github/workflows/pipeline.yml`**
+con el pipeline completo (también borra `parte2/`, que ya no hace falta). Nada de la tienda se toca desde aquí.
 
-En una empresa nadie cambia main directo: se abre una **rama** y un **pull request**, y el pipeline muestra el `plan` para que alguien lo revise.
+## PASO 14 · Tu correo, como secreto del repositorio
 
-```powershell
-git checkout -b mas-memoria
-```
+Las alarmas te escriben al correo, pero tu correo **no va en el código**. En GitHub → tu repositorio →
+**Settings** → **Secrets and variables** → **Actions** → **New repository secret**:
 
-En `terraform/main.tf` cambia la memoria de la Lambda: `memory_size = 128` → `memory_size = 256`. Y:
+- Name: `CORREO`
+- Secret: tu correo
+- **Add secret**
+
+El pipeline lo lee como `TF_VAR_correo` y GitHub lo tapa con `***` en los logs (aunque tu repo sea público).
+
+## PASO 15 · El pull request
 
 ```powershell
 git add .
-git commit -m "lambda con mas memoria"
-git push -u origin mas-memoria
+git commit -m "la tienda con ojos"
+git push -u origin los-ojos
 ```
 
-En GitHub sale el botón **Compare & pull request** → **Create pull request**. En la pestaña **Checks** o **Actions**:
+(Si el lab está en una subcarpeta: `git add . ":/.github"`.)
 
-**Revisar (terraform plan)** ✅ → en el resumen: **Plan: 0 to add, 1 to change, 0 to destroy** y,
-en "Ver el plan completo", `~ memory_size = 128 -> 256`. **Nada cambió todavía en AWS**: el rol `tienda-cicd-plan` solo puede mirar.
+En GitHub → **Compare & pull request** → **Create pull request**. Corre **Revisar (pruebas + terraform plan)** ✅:
 
-Revisa el plan y, si está bien, **Merge pull request** → **Confirm merge**. Eso es un push a main:
-en **Actions** corre **1 · Infra** y ahora sí, `1 changed`. Compruébalo en la consola: Lambda → `tienda-cicd` → Configuración → Memoria **256 MB**.
+- **Probar el back**: ahora son **12 pruebas** (las 5 de siempre + 7 de los ojos).
+- **terraform plan**: `Plan: 9 to add, 1 to change, 0 to destroy`. Los 9 son los ojos; el 1 es la Lambda, que ahora deja trazas
+  (`+ tracing_config { mode = "Active" }`).
 
-Vuelve a main en tu PC:
+**Merge pull request** → **Confirm merge**. En **Actions** corre el pipeline completo:
+
+```
+1 · Infra ──┬──▶ 2 · Back  (12 pruebas → zip con el SDK de X-Ray → Lambda) ──┬──▶ 3 · Finalizar
+            └──▶ 2 · Front (probar → versión → S3)                          ──┘     ¿abre? ¿responde? ¿deja traza?
+```
+
+1. **1 · Infra**: *Los logs de la Lambda* (que existan y duren 7 días) y `terraform apply` → **9 added, 1 changed**.
+2. **3 · Finalizar** → **¿Deja traza?**: el pipeline hace un pedido de prueba y espera **su traza** en X-Ray (de 10 a 60 segundos).
+   En el log del paso salen los tramos: `DynamoDB`, `cobrar`… En el resumen: **🔎 La traza del pedido de prueba llegó a X-Ray** y el link del **📊 Tablero**.
+
+📬 **Abre tu correo**: llega *AWS Notification - Subscription Confirmation* → **Confirm subscription**.
+Sin eso, las alarmas suenan pero no te llega nada.
 
 ```powershell
 git checkout main
 git pull
 ```
 
-## PASO 6 · Reto: el candado en acción
+## PASO 16 · Las pruebas de observabilidad, desde la página
 
-Ahora **tú** tomas el candado desde tu PC y el pipeline choca contra él. En la carpeta principal:
+Abre tu tienda → **Observar** (arriba a la derecha) → **▶ Correr las 4 pruebas**. Cada una hace un pedido especial,
+**espera su traza** en X-Ray y revisa que la traza cuente lo que pasó:
+
+| Prueba | El pedido | La traza tiene que decir |
+|---|---|---|
+| ✅ Pedido normal | una gorra | 200 · pasó por `DynamoDB` y por `cobrar` · sin fallas |
+| 🚫 Pedido malo | talla XXL | 400 · pasó por `validar` · **no** tocó DynamoDB |
+| 🐢 Pedido lento | cliente `lento` | 200 · dura más de 2 s · **el culpable es `cobrar`** |
+| 💥 Pedido con falla | cliente `caos` | 500 · marcada con **falla** · la falla está en `cobrar` · …pero el pedido **sí** se guardó |
+
+Tardan de 20 a 60 segundos: X-Ray recibe las trazas por partes. Al terminar, **Ver la traza** dibuja la cascada:
+cada barra es un tramo y su largo es lo que tardó. En la lenta se ve de un golpe **dónde** se fueron los 3 segundos.
+
+Fíjate en la última: el pedido **se guardó pero no se cobró**. Un log diría "error"; la métrica diría "1 error";
+**la traza dice en qué paso**, y que ya habían pasado cosas antes.
+
+**Abrir en la consola de AWS ↗** abre la misma traza en CloudWatch → **Trace Map** y la línea de tiempo.
+Ahí, en *Traces*, puedes buscar por anotación: `annotation.cliente = "caos"`.
+
+## PASO 17 · Las alarmas suenan
+
+Las pruebas lento y con falla hacen sonar las dos alarmas. En 1 a 3 minutos:
+
+- Arriba de las pruebas: **🚨 tienda-cicd-se-cayo · ALARM** y **🚨 tienda-cicd-lenta · ALARM** (botón **¿Cómo están las alarmas?**).
+- 📬 Te llegan los correos *ALARM: "tienda-cicd-se-cayo"* y *ALARM: "tienda-cicd-lenta"*.
+- Sin más fallas, a los minutos vuelven a **OK** y te llega otro correo.
+
+`tienda-cicd-lenta` mira el **p90 de la Demora de los pedidos** (una métrica propia), no el promedio de la Lambda:
+las consultas rápidas de la página no alcanzan a esconder al cliente que esperó 3 segundos.
+
+## PASO 18 · Los logs
+
+En la terminal: `aws logs tail /aws/lambda/tienda-cicd --follow --format short` y corre una prueba. Por cada pedido ves
+`START`, tu log en JSON (con el campo `traza`), la línea `_aws` de las métricas y `REPORT`. `Ctrl + C` para salir.
+
+Consola → CloudWatch → **Logs Insights** → *Consultas guardadas* → `tienda-cicd/ventas-por-producto`, `tienda-cicd/ultimos-pedidos` y `tienda-cicd/errores`.
+Y debajo de la cascada, la página te da la consulta exacta para encontrar en los logs **el mismo pedido** de la traza: `filter traza = "1-…"`.
+
+## PASO 19 · El tablero
+
+El link está en el resumen del pipeline (o CloudWatch → **Paneles** → `tienda-cicd-laura`). Pulsa **⚡ Ráfaga** en la tienda un par de veces y espera 1 o 2 minutos:
+💰 Ventas y 🧾 Pedidos (tus métricas), ⚡ la Lambda, 🐢 cuánto tardan los pedidos (p50, p90 y el peor), 🚪 el API y 📜 los últimos pedidos.
+
+## PASO 20 · La alarma de la plata (AWS Budgets)
+
+Con tu usuario de la consola: **Billing and Cost Management → Presupuestos → Crear un presupuesto** →
+*Usar una plantilla* → **Presupuesto mensual de costos** → `5` USD → tu correo → **Crear presupuesto**.
+Este se puede quedar: los dos primeros presupuestos son gratis.
+
+## ¿Ya habías destruido la tienda en la clase 15?
+
+No pasa nada: el pipeline la vuelve a crear entera. Haz el PASO 12 (sin la rama) y luego:
 
 ```powershell
-cd terraform
-terraform console
-```
-
-`terraform console` abre una consola que solo **lee** la infraestructura (no cambia nada), pero mientras está abierta **tiene el candado**.
-Déjala abierta y:
-
-1. En S3 → `tienda-estado-…` → `tienda/`: aparece **`terraform.tfstate.tflock`**, el candado.
-2. En GitHub → **Actions** → **Pipeline de la tienda de Laura** → **Run workflow** → **Run workflow**.
-3. **1 · Infra** falla ❌ en *terraform apply* con **Error acquiring the state lock**, y en `Who:` sale **tu PC**.
-4. En la consola escribe `exit` (y Enter): el candado se suelta y `terraform.tfstate.tflock` desaparece.
-5. En la ejecución fallida → **Re-run jobs** → **Re-run all jobs**: ahora sí ✅.
-
-```powershell
-exit
+cd bootstrap
+terraform init
+terraform apply      # 12 recursos nuevos (11 si ya tenías el proveedor de GitHub)
 cd ..
 ```
 
-El candado evita que dos personas (o una persona y el pipeline) cambien la infraestructura al mismo tiempo: el segundo espera su turno.
+Crea el secreto `CORREO` (PASO 14) y sube todo: `git add .`, `git commit`, `git push` (si protegiste main en el PASO 10, por pull request).
+**1 · Infra** crea los 22 recursos (≈ 4 min por CloudFront) y sigue con el back, el front y la prueba de la traza.
 
-## Al terminar la parte 1: NO destruyas
+## Al terminar: destruir EN ORDEN (¡importante!)
 
-La infraestructura se queda encendida hasta la clase 15 (cuesta prácticamente cero: todo es serverless y se cobra por uso).
-**No borres la carpeta** `tienda-laura-cicd`: en `bootstrap/` está el estado del bootstrap.
-
-# PARTE 2 · Clase 15: la aplicación se publica sola
-
-## PASO 7 · Activa la aplicación en el pipeline
-
-Copia el pipeline completo encima del de la parte 1 y súbelo, en la carpeta principal:
-
-```powershell
-Copy-Item parte2\pipeline.yml .github\workflows\pipeline.yml
-git add .
-git commit -m "pipeline completo: infra y aplicacion"
-git push
-```
-
-> Si el lab está en una subcarpeta de otro repo, el destino es el `pipeline.yml` de la **raíz** de ese repo:
->
-> ```powershell
-> Copy-Item parte2\pipeline.yml (Join-Path (git rev-parse --show-toplevel) ".github\workflows\pipeline.yml")
-> git add . ":/.github"
-> git commit -m "pipeline completo: infra y aplicacion"
-> git push
-> ```
-
-En **Actions** ahora el pipeline tiene cuatro trabajos, en este orden:
-
-```
-1 · Infra (terraform apply) ──┬──▶ 2 · Back  (probar → zip → Lambda)       ──┬──▶ 3 · Finalizar
-                              └──▶ 2 · Front (probar → versión → S3)         ──┘
-```
-
-1. **1 · Infra** ✅ → `terraform apply` dice **No changes**: la infraestructura ya estaba.
-2. **2 · Back** ✅ y **2 · Front** ✅, al mismo tiempo: cada uno se **prueba**, se **empaqueta** y se **publica**
-   (el back como zip a la Lambda, el front como archivos al bucket S3).
-3. **3 · Finalizar** ✅ → abre la tienda y el API en vivo.
-
-En el **resumen** sale **"Tienda publicada: https://…"**: es el mismo link de la parte 1, pero ahora con la tienda de verdad.
-La franja dice **"Publicada por GitHub Actions · commit …"**.
-
-## PASO 8 · Cambia la tienda con un push
-
-Abre `front/index.html`, cambia el título (`Ropa que <em>llega volando</em>.`) por lo que quieras y:
-
-```powershell
-git add .
-git commit -m "nuevo titulo"
-git push
-```
-
-En **Actions** mira **1 · Infra**: el `terraform apply` dice **No changes** (la infraestructura no cambió); el back y el front se vuelven a probar, empaquetar y publicar.
-En ≈ 1 minuto recarga tu tienda: el cambio y el commit nuevo ya están en internet.
-
-## PASO 9 · El error que el pipeline atrapa
-
-En `back/app.py` cambia el precio de la camiseta de `59000` a `5900` (un cero de menos) y haz push.
-En **Actions**: **1 · Infra** ✅ (No changes), **2 · Front** ✅ y **2 · Back** ❌ en *Probar el back* (falla `test_precios_oficiales`):
-el back **no se empaqueta ni se sube**, y **3 · Finalizar** ni arranca. Tu tienda **sigue funcionando** con el precio bueno. Para arreglarlo:
-
-```powershell
-git revert HEAD --no-edit
-git push
-```
-
-## PASO 10 · La regla: a main solo se llega por pull request
-
-Repositorio → **Settings** → **Rules** → **Rulesets** → **New ruleset** → **New branch ruleset**:
-
-- Nombre: `main protegido` · Enforcement status: **Active**
-- Target branches → **Add target** → **Include default branch**
-- Marca **Require a pull request before merging**
-- Marca **Require status checks to pass** → **Add checks** → `Revisar (pruebas + terraform plan)`
-- **Create**
-
-Prueba: cambia algo del front en main y haz `git push`. GitHub lo **rechaza** (`GH013: Repository rule violations`):
-desde ahora todo cambio pasa por un pull request con pruebas y plan en verde.
-
-> **Repositorio privado con cuenta gratis:** GitHub no deja crear la regla (dice *Upgrade to GitHub Pro or make this repository public*).
-> Para hacer este paso, vuelve público el repo: **Settings** → **General** → abajo, **Change visibility** → **Public**.
-> No expones nada secreto: no hay llaves (OIDC), y el número de cuenta que aparece en los ARN no da acceso a nadie: el rol solo confía en TU repositorio.
-> En las empresas (GitHub Team o Enterprise) la regla funciona también en repos privados.
-
-## PASO 11 · Al terminar: destruir EN ORDEN (¡importante!)
-
-Primero **la tienda** (su estado está en el bucket) y **después** el bootstrap (que borra el bucket):
+Tu usuario `terraform-lab` ahora también va a borrar alarmas, el tablero y el SNS: IAM → Usuarios → `terraform-lab` →
+Agregar permisos → Adjuntar políticas directamente → `CloudWatchFullAccessV2` y `AmazonSNSFullAccess`.
 
 ```powershell
 cd terraform
 terraform init -backend-config="backend.hcl"
-terraform destroy          # yes · Destroy complete! Resources: 13 destroyed.
+terraform destroy          # yes · Destroy complete! Resources: 22 destroyed.
 
 cd ../bootstrap
 terraform destroy          # yes · Destroy complete! (11 a 13 recursos, según tu cuenta)
 
-# los logs de la Lambda los crea AWS solo (no Terraform): bórralos aparte
+# los logs de la Lambda los crea AWS (no Terraform): bórralos aparte
 aws logs delete-log-group --log-group-name /aws/lambda/tienda-cicd
 ```
 
-Si lo haces al revés, se borra el estado y Terraform ya no sabe qué destruir: tocaría borrar la tienda a mano en la consola.
-Fíjate en el primero: **el pipeline creó la tienda y tu PC la destruye**, porque los dos leen el mismo estado en S3.
+Las trazas y las métricas no se borran: X-Ray guarda las trazas 30 días y CloudWatch deja vencer las métricas solas.
+Ninguna de las dos cobra si nadie manda datos nuevos.
 
-El repositorio de GitHub puedes dejarlo: sin los roles, el pipeline ya no puede entrar a tu AWS.
+## Lo que cuesta
+
+Casi nada, y para el lab entra en la capa gratuita: 10 alarmas, 3 tableros, 5 GB de logs, 1 millón de peticiones a SNS
+y **100.000 trazas** al mes. Lo único fuera de ella son las 7 métricas propias (Pedidos y Ventas por 3 productos, y Demora):
+unos USD 0,30 al mes cada una, cobrados por hora. Unas horas de lab cuestan menos de un centavo.
 
 ## Lab vs. empresa
 
 | | Este lab | Una empresa |
 |---|---|---|
-| Estado | S3 con versiones y candado ✅ | igual (a veces, en Terraform Cloud) |
-| Plan en cada pull request y apply al unir a main | ✅ | igual, y a veces el apply espera una aprobación (*environment*) |
-| Entrada sin llaves (OIDC) con roles separados | ✅ | igual, y una cuenta de AWS por ambiente (dev, prod) |
-| Bootstrap | a mano, desde tu PC | una sola vez, lo hace el equipo de plataforma |
+| La observabilidad | en Terraform, por pull request ✅ | igual: alarmas y tableros son código, con revisión |
+| Las trazas | X-Ray con su SDK | X-Ray en todos los servicios, con las trazas buscadas por anotación desde CloudWatch |
+| Las alarmas | al correo | a Slack, Teams o PagerDuty, con un turno de guardia |
+| La prueba de humo | el pipeline espera una traza | igual, y además pruebas sintéticas cada minuto (CloudWatch Synthetics) |
 
 ## Si algo falla
 
 | Mensaje | Qué hacer |
 |---|---|
+| `AccessDenied` en el `terraform apply` del pipeline (`cloudwatch:PutMetricAlarm`, `sns:CreateTopic`, `logs:CreateLogGroup`…) | Falta el PASO 13: el rol del pipeline no tiene los permisos nuevos. Corre el bootstrap y vuelve a correr el pipeline (**Re-run failed jobs**). |
+| **3 · Finalizar** ❌ en *¿Deja traza?* | ¿El back se publicó con el SDK? En **2 · Back** → *Empaquetar el back* debe salir un `back.zip` de ≈ 350 KB. Si sí, **Re-run failed jobs**: a veces X-Ray tarda más. |
+| Las pruebas de la página se quedan en *Esperando la traza…* | Igual que arriba. Revisa también Lambda → `tienda-cicd` → Configuración → Herramientas de supervisión → **Rastreo activo** (debe estar activado). |
+| La página no muestra la sección 🔭 | El front viejo sigue publicado: revisa que **2 · Front** haya corrido después del merge y recarga con `Ctrl + F5`. |
+| No llegan los correos | Confirma la suscripción (PASO 15) y revisa el spam. ¿Creaste el secreto `CORREO` **antes** del merge? Si no, créalo y en Actions → **Run workflow**. |
+| `No value for required variable` | Tu `terraform/observabilidad.tf` es viejo: repite el PASO 12. |
+| La alarma `tienda-cicd-lenta` no suena | Mira la métrica, no el promedio: corre otra vez la prueba 🐢 y espera 2 o 3 minutos. |
 | `Not authorized to perform sts:AssumeRoleWithWebIdentity` (en Actions) | El repositorio quedó mal escrito o con otras mayúsculas. En `bootstrap`: `terraform apply -var="repo_github=TU-USUARIO/tienda-laura"`, `git add .`, commit, push (el `pipeline.yml` no cambia, pero los roles sí). Revisa también que la rama sea `main`. Si bajaste el zip antes del 22 de octubre, bájalo otra vez: GitHub cambió el formato del pase (`repo:usuario@123/repo@456:…`) y el bootstrap nuevo acepta los dos. |
-| En la clase 15 volviste a correr el bootstrap y el pipeline perdió el back y el front | El bootstrap reescribe `.github/workflows/pipeline.yml` con el de la parte 1. Repite el `Copy-Item` del PASO 7, commit y push. |
 | `EntityAlreadyExists ... oidc-provider` (en el bootstrap) | Tu cuenta ya tiene el proveedor de GitHub: `terraform apply -var="crear_proveedor=false"`. |
 | `BucketAlreadyExists` o `BucketAlreadyOwnedByYou` (en el bootstrap) | Ya hiciste el bootstrap antes en esta cuenta y se perdió su estado. Borra el bucket `tienda-estado-…` en la consola (vacíalo primero) y repite. |
 | `AccessDenied ... CreateOpenIDConnectProvider` o `CreateRole` | Falta la política del PASO 0. |
 | `Unsupported argument ... use_lockfile` | Tu Terraform es anterior a la 1.10: actualízalo (`terraform version`). |
-| **2 · Back** ❌ en *Subir el back a Lambda* con `ResourceNotFoundException` | La Lambda no existe: revisa que **1 · Infra** haya terminado en verde. |
-| **3 · Finalizar** ❌ en *¿La tienda abre?* | CloudFront recién creado puede tardar unos minutos más: en Actions → **Re-run failed jobs**. |
-| `AccessDenied` en el `terraform apply` del pipeline | El rol `tienda-cicd-apply` solo maneja recursos que empiezan por `tienda-cicd-`. Si cambiaste un nombre en `main.tf`, déjalo como estaba. |
-| La página dice *AccessDenied* en vez de "La infraestructura ya está lista" | El paso *Poner el aviso 🚧* no corrió: revisa que **1 · Infra** haya terminado en verde y recarga. |
 | `terraform fmt -check` ❌ en el plan | Quedó mal alineado un `=`. En tu PC: `cd terraform`, `terraform fmt`, commit y push a la misma rama. |
 | `Too many command line arguments` en `terraform init` | En PowerShell, `-backend-config` va con comillas: `terraform init -backend-config="backend.hcl"` (sin ellas, PowerShell lo parte en el punto). |
 | `Error acquiring the state lock` | Alguien (o el pipeline) está aplicando. Espera a que termine. Si un pipeline se canceló a la mitad y el candado quedó: `terraform force-unlock <ID>` con el ID del mensaje. |

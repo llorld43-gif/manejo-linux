@@ -48,6 +48,7 @@ jobs:
       funcion: ${{ steps.salidas.outputs.funcion }}
       tienda: ${{ steps.salidas.outputs.tienda }}
       api: ${{ steps.salidas.outputs.api }}
+      tablero: $${{ steps.salidas.outputs.tablero }}
     steps:
       - name: Bajar el código del repositorio
         uses: actions/checkout@v4
@@ -70,6 +71,11 @@ jobs:
       - name: terraform init (el estado está en S3)
         run: terraform init -input=false -backend-config=backend.hcl
 
+      - name: Los logs de la Lambda (que existan y duren 7 días)
+        run: |
+          aws logs create-log-group --log-group-name /aws/lambda/tienda-cicd 2>/dev/null || echo "el grupo de logs ya existía"
+          aws logs put-retention-policy --log-group-name /aws/lambda/tienda-cicd --retention-in-days 7
+
       - name: terraform apply (toda la infraestructura)
         run: terraform apply -input=false -auto-approve
 
@@ -80,7 +86,7 @@ jobs:
           echo "funcion=$(terraform output -raw funcion)" >> "$GITHUB_OUTPUT"
           echo "tienda=$(terraform output -raw tu_tienda)" >> "$GITHUB_OUTPUT"
           echo "api=$(terraform output -raw tu_api)" >> "$GITHUB_OUTPUT"
-
+          echo "tablero=$(terraform output -raw tu_tablero)" >> "$GITHUB_OUTPUT"
   back:
     name: 2 · Back (probar, empaquetar, publicar)
     needs: infra   # espera a que exista la infraestructura
@@ -94,16 +100,21 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar boto3
-        run: pip install boto3
+      - name: Instalar boto3 y el SDK de X-Ray
+        working-directory: "tienda-laura-cicd"
+        run: pip install boto3 -r back/requirements.txt
 
       - name: Probar el back (back/test_app.py)
         working-directory: "tienda-laura-cicd"
         run: python -m unittest discover -s back -v
 
-      - name: Empaquetar el back (back.zip)
+      - name: Empaquetar el back (back.zip = app.py + el SDK de X-Ray)
         working-directory: "tienda-laura-cicd"
-        run: cd back && zip -X ../back.zip app.py
+        run: |
+          pip install -r back/requirements.txt --no-deps --target paquete --quiet
+          cp back/app.py paquete/
+          cd paquete && zip -qrX ../back.zip . -x '*__pycache__*'
+          cd .. && ls -lh back.zip
 
       - name: Entrar a AWS con OIDC (sin llaves)
         uses: aws-actions/configure-aws-credentials@v4
@@ -167,7 +178,7 @@ jobs:
         run: |
           echo "Tienda publicada → ${{ needs.infra.outputs.tienda }}"
           echo "### 🛍️ Tienda publicada: ${{ needs.infra.outputs.tienda }}" >> "$GITHUB_STEP_SUMMARY"
-
+          echo "### 📊 Tablero: $${{ needs.infra.outputs.tablero }}" >> "$GITHUB_STEP_SUMMARY"
   # ---------------------------------------------------------------- PULL REQUEST
   revisar:
     name: Revisar (pruebas + terraform plan)
